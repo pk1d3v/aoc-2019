@@ -1,21 +1,15 @@
-use std::env;
 use std::error::Error;
 use std::fs;
 
-pub(crate) fn day01() -> Result<(), Box<dyn Error>> {
-    let input_str = match env::args().nth(1) {
-        None => Err("Invalid number of arguments. Expected 2.")?,
-        Some(path) => fs::read_to_string(path)?,
-    };
+pub(crate) fn day01(path: &String) -> Result<(), Box<dyn Error>> {
+    let input_str = fs::read_to_string(path)?;
 
     let modules: Vec<u32> = input_str
         .lines()
         .map(|l| l.trim().parse().unwrap())
         .collect();
 
-    let ans1: u32 = modules
-        .iter()
-        .fold(0u32, |sum, val| sum + calc_fuel(*val));
+    let ans1: u32 = modules.iter().fold(0u32, |sum, val| sum + calc_fuel(*val));
 
     let ans2: u32 = modules
         .iter()
