@@ -3,16 +3,34 @@ use std::fs;
 
 pub(crate) fn day02(path: &str) -> Result<(), Box<dyn Error>> {
     let program = fs::read_to_string(path)?;
-    let mut ram = load_program(&program)?;
+    let ram = load_program(&program)?;
 
-    // Additional preparations
-    ram[1] = 12;
-    ram[2] = 2;
+    let ans = run(ram.clone(), 12, 2)?;
+    println!("answer 1: {}", ans);
+
+    let target = 19690720u32;
+
+    for noun in 1..100 {
+        for verb in 1..100 {
+            let val = run(ram.clone(), noun, verb)?;
+            if val == target {
+                println!("answer 2: {}", 100 * noun + verb);
+                return Ok(());
+            }
+        }
+    }
+
+    Err("Answer not found!")?
+}
+
+fn run(mut ram: Vec<u32>, noun: u32, verb: u32) -> Result<u32, Box<dyn Error>> {
+    // Additional input
+    ram[1] = noun;
+    ram[2] = verb;
 
     execute_program(&mut ram)?;
 
-    println!("answer 1: {}", ram[0]);
-    Ok(())
+    Ok(ram[0])
 }
 
 // Loads program from string
