@@ -17,9 +17,37 @@ struct Line {
     p2: Point,
 }
 
+impl Line {
+    fn contains(&self, pt: Point) -> bool {
+        return is_value_in_range(self.p1.x, self.p2.x, pt.x)
+            && is_value_in_range(self.p1.y, self.p2.y, pt.y);
+    }
+
+    // Returns manhattan distance between two points of line
+    fn distance(&self) -> u32 {
+        return manhattan_distance(self.p1, self.p2) as u32;
+    }
+}
+
 #[derive(Debug)]
 struct Wire {
     segments: Vec<Line>,
+}
+
+impl Wire {
+    // Returns number of steps required to reach desired point
+    fn steps(&self, pt: Point) -> Option<u32> {
+        let mut steps = 0u32;
+        for line in &self.segments {
+            if line.contains(pt) {
+                steps += manhattan_distance(line.p1, pt) as u32;
+                return Some(steps);
+            }
+            steps += line.distance();
+        }
+
+        None
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -87,8 +115,11 @@ pub(crate) fn day03(path: &str) -> Result<()> {
 
     let min_distance = distance_to_near_wires_intersect(&wires[0], &wires[1], POINT_CENTER)
         .ok_or("No wire intersection")?;
+    println!("answer 1: {}", min_distance);
 
-    println!("answer: {}", min_distance);
+    let steps = min_steps_to_wires_intersect(&wires[0], &wires[1])
+        .ok_or("Couldn't calculate steps to intersection points")?;
+    println!("answer 2: {}", steps);
     Ok(())
 }
 
@@ -110,6 +141,25 @@ fn distance_to_near_wires_intersect(wire1: &Wire, wire2: &Wire, target_pt: Point
         None
     } else {
         Some(min_distance)
+    }
+}
+
+fn min_steps_to_wires_intersect(wire1: &Wire, wire2: &Wire) -> Option<u32> {
+    let mut min_steps = 0;
+
+    for pt in wires_intersection_points(wire1, wire2) {
+        let wire1_steps = wire1.steps(pt).unwrap();
+        let wire2_steps = wire2.steps(pt).unwrap();
+        let total_steps = wire1_steps + wire2_steps;
+        if min_steps == 0 || min_steps > total_steps {
+            min_steps = total_steps;
+        }
+    }
+
+    if min_steps == 0 {
+        None
+    } else {
+        Some(min_steps)
     }
 }
 
@@ -218,6 +268,36 @@ mod tests {
         let wire2 = Wire::from_str("U98,R91,D20,R16,D67,R40,U7,R15,U6,R7").unwrap();
         let distance = distance_to_near_wires_intersect(&wire1, &wire2, POINT_CENTER);
         assert_eq!(distance, Some(135));
+    }
+
+    #[test]
+    fn test_wire_steps() {
+        let wire = Wire::from_str("R8,U5,L5,D3").unwrap();
+        assert_eq!(wire.steps(Point { x: 3, y: 3 }), Some(20));
+        assert_eq!(wire.steps(Point { x: 6, y: 5 }), Some(15));
+
+        let wire = Wire::from_str("U7,R6,D4,L4").unwrap();
+        assert_eq!(wire.steps(Point { x: 3, y: 3 }), Some(20));
+        assert_eq!(wire.steps(Point { x: 6, y: 5 }), Some(15));
+    }
+
+    #[test]
+    fn test_min_wire_steps() {
+        let wire1 = Wire::from_str("R8,U5,L5,D3").unwrap();
+        let wire2 = Wire::from_str("U7,R6,D4,L4").unwrap();
+
+        let steps = min_steps_to_wires_intersect(&wire1, &wire2);
+        assert_eq!(steps, Some(30));
+
+        let wire1 = Wire::from_str("R75,D30,R83,U83,L12,D49,R71,U7,L72").unwrap();
+        let wire2 = Wire::from_str("U62,R66,U55,R34,D71,R55,D58,R83").unwrap();
+        let steps = min_steps_to_wires_intersect(&wire1, &wire2);
+        assert_eq!(steps, Some(610));
+
+        let wire1 = Wire::from_str("R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51").unwrap();
+        let wire2 = Wire::from_str("U98,R91,D20,R16,D67,R40,U7,R15,U6,R7").unwrap();
+        let steps = min_steps_to_wires_intersect(&wire1, &wire2);
+        assert_eq!(steps, Some(410));
     }
 
     #[test]
