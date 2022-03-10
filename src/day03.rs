@@ -251,23 +251,28 @@ mod tests {
 
     #[test]
     fn test_lowest_wire_distance() {
-        let wire1 = Wire::from_str("R8,U5,L5,D3").unwrap();
-        let wire2 = Wire::from_str("U7,R6,D4,L4").unwrap();
+        let cases = [
+            ("R8,U5,L5,D3", "U7,R6,D4,L4", Some(6)),
+            (
+                "R75,D30,R83,U83,L12,D49,R71,U7,L72",
+                "U62,R66,U55,R34,D71,R55,D58,R83",
+                Some(159),
+            ),
+            (
+                "R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51",
+                "U98,R91,D20,R16,D67,R40,U7,R15,U6,R7",
+                Some(135),
+            ),
+        ];
 
-        assert_eq!(
-            distance_to_near_wires_intersect(&wire1, &wire2, POINT_CENTER),
-            Some(6)
-        );
-
-        let wire1 = Wire::from_str("R75,D30,R83,U83,L12,D49,R71,U7,L72").unwrap();
-        let wire2 = Wire::from_str("U62,R66,U55,R34,D71,R55,D58,R83").unwrap();
-        let distance = distance_to_near_wires_intersect(&wire1, &wire2, POINT_CENTER);
-        assert_eq!(distance, Some(159));
-
-        let wire1 = Wire::from_str("R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51").unwrap();
-        let wire2 = Wire::from_str("U98,R91,D20,R16,D67,R40,U7,R15,U6,R7").unwrap();
-        let distance = distance_to_near_wires_intersect(&wire1, &wire2, POINT_CENTER);
-        assert_eq!(distance, Some(135));
+        for (in1, in2, res) in cases {
+            let wire1 = in1.parse::<Wire>().unwrap();
+            let wire2 = in2.parse::<Wire>().unwrap();
+            assert_eq!(
+                distance_to_near_wires_intersect(&wire1, &wire2, POINT_CENTER),
+                res
+            );
+        }
     }
 
     #[test]
@@ -283,21 +288,25 @@ mod tests {
 
     #[test]
     fn test_min_wire_steps() {
-        let wire1 = Wire::from_str("R8,U5,L5,D3").unwrap();
-        let wire2 = Wire::from_str("U7,R6,D4,L4").unwrap();
+        let cases = [
+            ("R8,U5,L5,D3", "U7,R6,D4,L4", Some(30)),
+            (
+                "R75,D30,R83,U83,L12,D49,R71,U7,L72",
+                "U62,R66,U55,R34,D71,R55,D58,R83",
+                Some(610),
+            ),
+            (
+                "R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51",
+                "U98,R91,D20,R16,D67,R40,U7,R15,U6,R7",
+                Some(410),
+            ),
+        ];
 
-        let steps = min_steps_to_wires_intersect(&wire1, &wire2);
-        assert_eq!(steps, Some(30));
-
-        let wire1 = Wire::from_str("R75,D30,R83,U83,L12,D49,R71,U7,L72").unwrap();
-        let wire2 = Wire::from_str("U62,R66,U55,R34,D71,R55,D58,R83").unwrap();
-        let steps = min_steps_to_wires_intersect(&wire1, &wire2);
-        assert_eq!(steps, Some(610));
-
-        let wire1 = Wire::from_str("R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51").unwrap();
-        let wire2 = Wire::from_str("U98,R91,D20,R16,D67,R40,U7,R15,U6,R7").unwrap();
-        let steps = min_steps_to_wires_intersect(&wire1, &wire2);
-        assert_eq!(steps, Some(410));
+        for (in1, in2, res) in cases {
+            let wire1 = in1.parse::<Wire>().unwrap();
+            let wire2 = in2.parse::<Wire>().unwrap();
+            assert_eq!(min_steps_to_wires_intersect(&wire1, &wire2), res);
+        }
     }
 
     #[test]
