@@ -10,33 +10,45 @@ pub(crate) fn day04(path: &str) -> Result<(), Box<dyn error::Error>> {
         .collect::<Result<Vec<_>, _>>()?;
     assert!(range.len() == 2);
 
-    let mut count = 0usize;
+    let mut answer1 = 0usize;
+    let mut answer2 = 0usize;
     for i in range[0]..=range[1] {
-        if is_password_good(i) {
-            count += 1;
-        }
+        let (part1, part2) = is_password_good(i);
+        // Just for fun. Should be done with if part1/part2.
+        answer1 += part1 as usize;
+        answer2 += part2 as usize;
     }
 
-    println!("answer 1: {}", count);
+    println!("answer 1: {}", answer1);
+    println!("answer 2: {}", answer2);
     Ok(())
 }
 
-fn is_password_good(pass: u32) -> bool {
+fn is_password_good(pass: u32) -> (bool, bool) {
     let digits = to_digits(pass);
 
-    let (_, increases, has_double) = digits.iter().fold(
-        (None, true, false),
-        |(prev, mut increases, mut double), digit| {
-            if prev.is_some() {
-                increases = increases && *digit >= prev.unwrap();
-                double = double || *digit == prev.unwrap();
+    let mut increases = true;
+    let mut has_double = false;
+    let mut has_adjacent = false;
+    let (last_group_size, _) = digits.iter().fold((1, None), |(mut group, prev), digit| {
+        if prev.is_some() {
+            increases = increases && *digit >= prev.unwrap();
+            if *digit == prev.unwrap() {
+                has_adjacent = true;
+                group += 1;
+            } else {
+                has_double = has_double || group == 2;
+                group = 1;
             }
+        }
 
-            (Some(*digit), increases, double)
-        },
-    );
+        (group, Some(*digit))
+    });
 
-    increases && has_double
+    // Finalize double-digit requirement with last group size
+    has_double = has_double || last_group_size == 2;
+
+    (increases && has_adjacent, increases && has_double)
 }
 
 fn to_digits(mut num: u32) -> Vec<u8> {
@@ -63,12 +75,13 @@ mod tests {
     #[test]
     fn test() {
         let cases = [
-            (111111u32, true),
-            (111123, true),
-            (135679, false),
-            (223450, false),
-            (123789, false),
-            (676399, false),
+            (111111u32, (true, false)),
+            (123444, (true, false)),
+            (111123, (true, false)),
+            (135679, (false, false)),
+            (223450, (false, false)),
+            (123789, (false, false)),
+            (676399, (false, false)),
         ];
 
         for (pass, res) in cases {
