@@ -85,10 +85,10 @@ pub(crate) fn day03(path: &str) -> Result<()> {
     let wires: std::result::Result<Vec<_>, _> = input.lines().map(|s| Wire::from_str(s)).collect();
     let wires = wires?;
 
-    let point =
-        find_wires_intersection_point(&wires[0], &wires[1]).ok_or("No wire intersection")?;
+    let min_distance = distance_to_near_wires_intersect(&wires[0], &wires[1], POINT_CENTER)
+        .ok_or("No wire intersection")?;
 
-    println!("answer: {}", manhattan_distance(POINT_CENTER, point));
+    println!("answer: {}", min_distance);
     Ok(())
 }
 
@@ -96,24 +96,36 @@ fn manhattan_distance(pt1: Point, pt2: Point) -> i32 {
     (pt1.x - pt2.x).abs() + (pt1.y - pt2.y).abs()
 }
 
-fn find_wires_intersection_point(wire1: &Wire, wire2: &Wire) -> Option<Point> {
-    let mut pt_distance = 0;
-    let mut pt = None;
+fn distance_to_near_wires_intersect(wire1: &Wire, wire2: &Wire, target_pt: Point) -> Option<i32> {
+    let mut min_distance = 0;
+
+    for pt in wires_intersection_points(wire1, wire2) {
+        let dist = manhattan_distance(target_pt, pt);
+        if min_distance == 0 || min_distance > dist {
+            min_distance = dist;
+        }
+    }
+
+    if min_distance == 0 {
+        None
+    } else {
+        Some(min_distance)
+    }
+}
+
+fn wires_intersection_points(wire1: &Wire, wire2: &Wire) -> Vec<Point> {
+    let mut points = Vec::new();
 
     // Collect all intersections
     for line1 in &wire1.segments {
         for line2 in &wire2.segments {
             if let Some(point) = straight_lines_intersection(*line1, *line2) {
-                let dist = manhattan_distance(POINT_CENTER, point);
-                if pt_distance == 0 || pt_distance > dist {
-                    pt_distance = dist;
-                    pt = Some(point);
-                }
+                points.push(point);
             }
         }
     }
 
-    pt
+    points
 }
 
 fn is_value_in_range(start: i32, end: i32, val: i32) -> bool {
@@ -188,28 +200,24 @@ mod tests {
     }
 
     #[test]
-    fn test_wire_intersection() {
+    fn test_lowest_wire_distance() {
         let wire1 = Wire::from_str("R8,U5,L5,D3").unwrap();
         let wire2 = Wire::from_str("U7,R6,D4,L4").unwrap();
 
         assert_eq!(
-            find_wires_intersection_point(&wire1, &wire2),
-            Some(Point { x: 3, y: 3 })
+            distance_to_near_wires_intersect(&wire1, &wire2, POINT_CENTER),
+            Some(6)
         );
 
         let wire1 = Wire::from_str("R75,D30,R83,U83,L12,D49,R71,U7,L72").unwrap();
         let wire2 = Wire::from_str("U62,R66,U55,R34,D71,R55,D58,R83").unwrap();
-        let point = find_wires_intersection_point(&wire1, &wire2);
-        assert_eq!(point.is_some(), true);
-        let point = point.unwrap();
-        assert_eq!(point.x + point.y, 159);
+        let distance = distance_to_near_wires_intersect(&wire1, &wire2, POINT_CENTER);
+        assert_eq!(distance, Some(159));
 
         let wire1 = Wire::from_str("R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51").unwrap();
         let wire2 = Wire::from_str("U98,R91,D20,R16,D67,R40,U7,R15,U6,R7").unwrap();
-        let point = find_wires_intersection_point(&wire1, &wire2);
-        assert_eq!(point.is_some(), true);
-        let point = point.unwrap();
-        assert_eq!(point.x + point.y, 135);
+        let distance = distance_to_near_wires_intersect(&wire1, &wire2, POINT_CENTER);
+        assert_eq!(distance, Some(135));
     }
 
     #[test]
