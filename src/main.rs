@@ -3,6 +3,7 @@ use std::error::Error;
 use std::process::exit;
 mod day01;
 mod day02;
+mod day03;
 
 struct Config {
     day: u8,
@@ -43,6 +44,7 @@ fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let result = match config.day {
         1 => day01::day01(&config.filename),
         2 => day02::day02(&config.filename),
+        3 => day03::day03(&config.filename),
         _ => Err("Invalid day number")?,
     };
 
