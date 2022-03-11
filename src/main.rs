@@ -1,10 +1,7 @@
+use aoc_2019::*;
 use std::env;
 use std::error::Error;
 use std::process::exit;
-mod day01;
-mod day02;
-mod day03;
-mod day04;
 
 struct Config {
     day: u8,
@@ -43,10 +40,10 @@ fn main() {
 
 fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let result = match config.day {
-        1 => day01::day01(&config.filename),
-        2 => day02::day02(&config.filename),
-        3 => day03::day03(&config.filename),
-        4 => day04::day04(&config.filename),
+        1 => day01::solve(&config.filename),
+        2 => day02::solve(&config.filename),
+        3 => day03::solve(&config.filename),
+        4 => day04::solve(&config.filename),
         _ => Err("Invalid day number")?,
     };
 

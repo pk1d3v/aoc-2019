@@ -1,7 +1,7 @@
 use std::error;
 use std::fs;
 
-pub(crate) fn day04(path: &str) -> Result<(), Box<dyn error::Error>> {
+pub fn solve(path: &str) -> Result<(), Box<dyn error::Error>> {
     let input = fs::read_to_string(path)?;
 
     let range = input

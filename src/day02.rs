@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::fs;
 
-pub(crate) fn day02(path: &str) -> Result<(), Box<dyn Error>> {
+pub fn solve(path: &str) -> Result<(), Box<dyn Error>> {
     let program = fs::read_to_string(path)?;
     let ram = load_program(&program)?;
 

@@ -107,7 +107,7 @@ impl FromStr for Wire {
 
 const POINT_CENTER: Point = Point { x: 0, y: 0 };
 
-pub(crate) fn day03(path: &str) -> Result<()> {
+pub fn solve(path: &str) -> Result<()> {
     let input = fs::read_to_string(path)?;
 
     let wires: std::result::Result<Vec<_>, _> = input.lines().map(|s| Wire::from_str(s)).collect();
