@@ -1,7 +1,7 @@
-use std::error;
+use anyhow::Result;
 use std::fs;
 
-pub fn solve(path: &str) -> Result<(), Box<dyn error::Error>> {
+pub fn solve(path: &str) -> Result<()> {
     let input = fs::read_to_string(path)?;
 
     let range = input

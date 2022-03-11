@@ -1,7 +1,7 @@
-use std::error::Error;
+use anyhow::Result;
 use std::fs;
 
-pub fn solve(path: &String) -> Result<(), Box<dyn Error>> {
+pub fn solve(path: &String) -> Result<()> {
     let input_str = fs::read_to_string(path)?;
 
     let modules: Vec<u32> = input_str

@@ -1,4 +1,4 @@
-use std::error;
+use anyhow::{anyhow, bail, Context, Result};
 
 #[derive(Debug, Default)]
 pub struct IntcodeComputer {
@@ -10,12 +10,13 @@ pub struct IntcodeComputer {
 }
 
 impl IntcodeComputer {
-    pub fn new(program: &str) -> Result<IntcodeComputer, Box<dyn error::Error>> {
+    pub fn new(program: &str) -> Result<IntcodeComputer> {
         let program = program
             .trim()
             .split(',')
             .map(|s| s.trim().parse::<i32>())
-            .collect::<Result<Vec<_>, _>>()?;
+            .collect::<Result<Vec<_>, _>>()
+            .context("Failed to read intcode program from file")?;
 
         Ok(IntcodeComputer {
             program: program.clone(),
@@ -36,7 +37,7 @@ impl IntcodeComputer {
     }
 
     // Starts program execution in computer
-    pub fn run(&mut self, noun: u32, verb: u32) -> Result<(), Box<dyn error::Error>> {
+    pub fn run(&mut self, noun: u32, verb: u32) -> Result<()> {
         // Additional input
         self.ram.write(1, noun as i32)?;
         self.ram.write(2, verb as i32)?;
@@ -46,14 +47,14 @@ impl IntcodeComputer {
     }
 
     // Internal instruction execution loop
-    fn execute(&mut self) -> Result<(), Box<dyn error::Error>> {
+    fn execute(&mut self) -> Result<()> {
         while !self.halted {
             self.process_instruction()?;
         }
         Ok(())
     }
 
-    fn process_instruction(&mut self) -> Result<(), Box<dyn error::Error>> {
+    fn process_instruction(&mut self) -> Result<()> {
         let &opcode = self.ram.read(self.ip)?;
         self.ip += 1;
         match opcode {
@@ -80,11 +81,7 @@ impl IntcodeComputer {
             // 99 means that the program is finished and should immediately halt.
             99 => self.halted = true,
             _ => {
-                return Err(format!(
-                    "Invalid opcode encountered: {} at {}",
-                    opcode,
-                    self.ip - 1
-                ))?
+                bail!("Invalid opcode encountered: {} at {}", opcode, self.ip - 1);
             }
         };
         Ok(())
@@ -95,15 +92,15 @@ impl IntcodeComputer {
 pub struct Ram(Vec<i32>);
 
 impl Ram {
-    pub fn read(&self, address: usize) -> Result<&i32, String> {
-        self.0.get(address).ok_or(format!(
+    pub fn read(&self, address: usize) -> Result<&i32> {
+        self.0.get(address).ok_or(anyhow!(
             "Read RAM failure: out of bounds access, address {}",
             address
         ))
     }
 
-    fn write(&mut self, address: usize, value: i32) -> Result<(), String> {
-        let v = self.0.get_mut(address).ok_or(format!(
+    fn write(&mut self, address: usize, value: i32) -> Result<()> {
+        let v = self.0.get_mut(address).ok_or(anyhow!(
             "Write RAM failure: out of bounds access, address {}",
             address
         ))?;

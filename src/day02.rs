@@ -1,8 +1,8 @@
 use crate::computer::IntcodeComputer;
-use std::error::Error;
+use anyhow::{bail, Result};
 use std::fs;
 
-pub fn solve(path: &str) -> Result<(), Box<dyn Error>> {
+pub fn solve(path: &str) -> Result<()> {
     let program = fs::read_to_string(path)?;
     let mut computer = IntcodeComputer::new(&program)?;
 
@@ -24,5 +24,5 @@ pub fn solve(path: &str) -> Result<(), Box<dyn Error>> {
         }
     }
 
-    Err("Answer not found!")?
+    bail!("Answer not found!");
 }

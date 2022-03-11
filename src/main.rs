@@ -1,6 +1,6 @@
+use anyhow::{bail, Result};
 use aoc_2019::*;
 use std::env;
-use std::error::Error;
 use std::process::exit;
 
 struct Config {
@@ -33,18 +33,18 @@ fn main() {
     println!("Day: {}\nFilename: {}", config.day, config.filename);
 
     if let Err(err) = run(config) {
-        println!("{}", err);
+        println!("{:?}", err);
         exit(2);
     }
 }
 
-fn run(config: Config) -> Result<(), Box<dyn Error>> {
+fn run(config: Config) -> Result<()> {
     let result = match config.day {
         1 => day01::solve(&config.filename),
         2 => day02::solve(&config.filename),
         3 => day03::solve(&config.filename),
         4 => day04::solve(&config.filename),
-        _ => Err("Invalid day number")?,
+        _ => bail!("Invalid day number"),
     };
 
     result

@@ -1,9 +1,8 @@
+use anyhow::{anyhow, Result};
 use core::fmt;
 use std::error;
 use std::fs;
 use std::str::FromStr;
-
-type Result<T> = std::result::Result<T, Box<dyn error::Error>>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct Point {
@@ -114,11 +113,11 @@ pub fn solve(path: &str) -> Result<()> {
     let wires = wires?;
 
     let min_distance = distance_to_near_wires_intersect(&wires[0], &wires[1], POINT_CENTER)
-        .ok_or("No wire intersection")?;
+        .ok_or(anyhow!("No wire intersection"))?;
     println!("answer 1: {}", min_distance);
 
     let steps = min_steps_to_wires_intersect(&wires[0], &wires[1])
-        .ok_or("Couldn't calculate steps to intersection points")?;
+        .ok_or(anyhow!("Couldn't calculate steps to intersection points"))?;
     println!("answer 2: {}", steps);
     Ok(())
 }
