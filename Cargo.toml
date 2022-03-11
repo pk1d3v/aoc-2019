@@ -1,9 +1,11 @@
 [package]
-name = "aoc_2019"
+name = "aoc-2019"
 version = "0.1.0"
 edition = "2021"
 authors = ["Kirill Priadko <pk1d3v@gmail.com>"]
+description = "Learning Rust via solving Advent of Code 2019 puzzles"
 
+publish = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
