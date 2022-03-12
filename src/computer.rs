@@ -55,35 +55,13 @@ impl IntcodeComputer {
     }
 
     fn process_instruction(&mut self) -> Result<()> {
-        let &opcode = self.ram.read(self.ip)?;
-        self.ip += 1;
-        match opcode {
-            // Opcode 1 adds together numbers read from two positions and stores the result in a third position.
-            // Opcode 2 works exactly like opcode 1, except it multiplies the two inputs instead of adding them.
-            op @ (1 | 2) => {
-                let &operand1 = self.ram.read(self.ip)?;
-                let &operand2 = self.ram.read(self.ip + 1)?;
-                let &dest = self.ram.read(self.ip + 2)?;
-
-                // Move instruction pointer
-                self.ip += 3;
-
-                // Read actual values for operation
-                let &operand1 = self.ram.read(operand1 as usize)?;
-                let &operand2 = self.ram.read(operand2 as usize)?;
-
-                if op == 1 {
-                    self.ram.write(dest as usize, operand1 + operand2)?;
-                } else {
-                    self.ram.write(dest as usize, operand1 * operand2)?;
-                }
-            }
-            // 99 means that the program is finished and should immediately halt.
-            99 => self.halted = true,
-            _ => {
-                bail!("Invalid opcode encountered: {} at {}", opcode, self.ip - 1);
-            }
+        let instruction = Instruction::decode(&self.ram, self.ip)?;
+        match instruction {
+            Instruction::Add(a, b, dst) => self.ram.write(dst, a + b)?,
+            Instruction::Multiply(a, b, dst) => self.ram.write(dst, a * b)?,
+            Instruction::Halt => self.halted = true,
         };
+        self.ip += instruction.size();
         Ok(())
     }
 }
@@ -106,6 +84,48 @@ impl Ram {
         ))?;
         *v = value;
         Ok(())
+    }
+}
+
+enum Instruction {
+    Add(i32, i32, usize),      // operand 1, operand 2, destination
+    Multiply(i32, i32, usize), // operand 1, operand 2, destination
+    Halt,
+}
+
+impl Instruction {
+    fn decode(mem: &Ram, address: usize) -> Result<Instruction> {
+        let &opcode = mem.read(address)?;
+        match opcode {
+            // Opcode 1 adds together numbers read from two positions and stores the result in a third position.
+            // Opcode 2 works exactly like opcode 1, except it multiplies the two inputs instead of adding them.
+            1 | 2 => {
+                let &operand1 = mem.read(address + 1)?;
+                let &operand2 = mem.read(address + 2)?;
+                let &dest = mem.read(address + 3)?;
+
+                // Read actual values for operation
+                let &operand1 = mem.read(operand1 as usize)?;
+                let &operand2 = mem.read(operand2 as usize)?;
+
+                if opcode == 1 {
+                    Ok(Self::Add(operand1, operand2, dest as usize))
+                } else {
+                    Ok(Self::Multiply(operand1, operand2, dest as usize))
+                }
+            }
+            // 99 means that the program is finished and should immediately halt.
+            99 => Ok(Self::Halt),
+            _ => bail!("Invalid opcode encountered: {} at {}", opcode, address),
+        }
+    }
+
+    // Returns size of instruction
+    fn size(&self) -> usize {
+        match *self {
+            Self::Add(_, _, _) | Self::Multiply(_, _, _) => 4,
+            Self::Halt => 0, // Don't move further when halt is reached
+        }
     }
 }
 
@@ -174,7 +194,7 @@ mod tests {
         let mut c = IntcodeComputer::new("99").unwrap();
         assert!(c.execute().is_ok());
         assert!(c.halted);
-        assert_eq!(c.ip, 1);
+        assert_eq!(c.ip, 0);
     }
 
     #[test]
