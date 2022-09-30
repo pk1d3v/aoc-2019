@@ -44,6 +44,7 @@ fn run(config: Config) -> Result<()> {
         2 => day02::solve(&config.filename),
         3 => day03::solve(&config.filename),
         4 => day04::solve(&config.filename),
+        5 => day05::solve(&config.filename),
         _ => bail!("Invalid day number"),
     };
 
